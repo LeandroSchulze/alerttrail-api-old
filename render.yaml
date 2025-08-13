@@ -1,7 +1,16 @@
 services:
   - type: web
-    name: alerttrail-api
+    name: shieldtrail
     env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn main:app --host=0.0.0.0 --port=10000"
-    pythonVersion: 3.11
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host=0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ST_PLAN_FREE_MAX_ANALYSES
+        value: "20"
