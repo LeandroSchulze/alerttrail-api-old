@@ -11,10 +11,16 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="AlertTrail API", version="1.0.0")
 
 # CORS
-origins = settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else ["*"] if settings.CORS_ORIGINS == "*" else [settings.CORS_ORIGINS]
+if settings.CORS_ORIGINS == "*":
+    allow_origins = ["*"]
+elif isinstance(settings.CORS_ORIGINS, list):
+    allow_origins = [str(x) for x in settings.CORS_ORIGINS]
+else:
+    allow_origins = [str(settings.CORS_ORIGINS)]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,3 +33,7 @@ app.include_router(analysis_routes.router)
 @app.get("/", tags=["root"])
 def root():
     return {"name": "AlertTrail API", "status": "ok"}
+
+@app.get("/health", tags=["root"])
+def health():
+    return {"ok": True}
