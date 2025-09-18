@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, Any
+from typing import Any
 
 class Token(BaseModel):
     access_token: str
@@ -14,7 +14,7 @@ class UserCreate(UserBase):
 
 class UserOut(UserBase):
     id: int
-    is_pro: bool
+    is_pro: bool = False
     class Config:
         from_attributes = True
 
