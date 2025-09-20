@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from fastapi.routing import APIRoute
 
 from .config import settings
 from .database import Base, engine
@@ -32,7 +33,7 @@ app.add_middleware(
 app.include_router(auth_routes.router)
 app.include_router(analysis_routes.router)
 
-# Aliases útiles para navegación desde el header/nav
+# Aliases útiles
 @app.get("/logout", include_in_schema=False)
 def logout_alias():
     return RedirectResponse(url="/auth/logout", status_code=307)
@@ -48,3 +49,12 @@ def root():
 @app.get("/health", tags=["root"])
 def health():
     return {"ok": True}
+
+# Log de rutas al arrancar (para ver que /auth/* está montado)
+@app.on_event("startup")
+def _log_routes():
+    paths = sorted([r.path for r in app.routes if isinstance(r, APIRoute)])
+    print("\n=== ROUTES ===")
+    for p in paths:
+        print(p)
+    print("==============\n")
