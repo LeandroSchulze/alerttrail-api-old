@@ -33,6 +33,20 @@ app.add_middleware(
 app.include_router(auth_routes.router)
 app.include_router(analysis_routes.router)
 
+
+# --- Middleware: interceptar /auth/logout aunque no exista la ruta ---
+@app.middleware("http")
+async def _force_auth_logout(request, call_next):
+    path = request.url.path
+    if request.method == "GET" and path == "/auth/logout":
+        # mismo borrado de cookie que usamos en _logout_response()
+        r = RedirectResponse(url="/auth/login", status_code=302)
+        r.delete_cookie("access_token", path="/")
+        if getattr(settings, "COOKIE_DOMAIN", None):
+            r.delete_cookie("access_token", path="/", domain=settings.COOKIE_DOMAIN)
+        return r
+    return await call_next(request)
+
 # --- Logout blindado (borra cookie con y sin dominio) ---
 def _logout_response():
     r = RedirectResponse(url="/auth/login", status_code=302)
