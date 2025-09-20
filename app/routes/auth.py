@@ -15,6 +15,7 @@ from ..utils.security import (
     issue_access_cookie,
     decode_access_token,
 )
+from ..config import settings  # <-- para borrar cookie con dominio si aplica
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -100,7 +101,20 @@ def login_web(
 @router.get("/logout", include_in_schema=False)
 def logout():
     r = RedirectResponse(url="/auth/login", status_code=status.HTTP_302_FOUND)
-    r.delete_cookie("access_token", path="/")  # si seteaste domain en la cookie, podés añadir domain aquí también
+    # borrar cookie sin dominio
+    r.delete_cookie("access_token", path="/")
+    # y también con dominio si lo estás usando (p.ej. .alerttrail.com)
+    if getattr(settings, "COOKIE_DOMAIN", None):
+        r.delete_cookie("access_token", path="/", domain=settings.COOKIE_DOMAIN)
+    return r
+
+# helper para limpiar cookie rápido
+@router.get("/clear", include_in_schema=False)
+def clear_cookie():
+    r = HTMLResponse("ok")
+    r.delete_cookie("access_token", path="/")
+    if getattr(settings, "COOKIE_DOMAIN", None):
+        r.delete_cookie("access_token", path="/", domain=settings.COOKIE_DOMAIN)
     return r
 
 @router.get("/me", response_model=UserOut)
