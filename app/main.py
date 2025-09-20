@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
+
 from .config import settings
 from .database import Base, engine
 from .routes import auth as auth_routes
@@ -29,6 +31,15 @@ app.add_middleware(
 # Rutas
 app.include_router(auth_routes.router)
 app.include_router(analysis_routes.router)
+
+# Aliases útiles para navegación desde el header/nav
+@app.get("/logout", include_in_schema=False)
+def logout_alias():
+    return RedirectResponse(url="/auth/logout", status_code=307)
+
+@app.get("/login", include_in_schema=False)
+def login_alias():
+    return RedirectResponse(url="/auth/login", status_code=307)
 
 @app.get("/", tags=["root"])
 def root():
